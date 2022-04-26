@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum eCBState
+public enum eCardState
 {
     toDrawpile,
     drawpile,
@@ -23,20 +23,22 @@ public class CardBartok : Card
     static public float  CARD_WIDTH = 2f;
 
     [Header("Set Dynamically: CardBartok")]
-    public eCBState         state = eCBState.drawpile;
+    public eCardState         state = eCardState.drawpile;
     public List<Vector3>    bezierPts;
     public List<Quaternion> bezierRots;
     public float            timeStart;
     public float            timeDuration;
     public GameObject       reportFinishTo = null;
+    public int              eventualSortOrder;
+    public string           eventualSortLayer;
 
     private void Update() {
         switch (state)
         {
-            case eCBState.toHand:
-            case eCBState.toTarget:
-            case eCBState.toDrawpile:
-            case eCBState.to:
+            case eCardState.toHand:
+            case eCardState.toTarget:
+            case eCardState.toDrawpile:
+            case eCardState.to:
                 float u = (Time.time - timeStart) / timeDuration;
                 float uC = Easing.Ease(u, MOVE_EASING);
 
@@ -50,10 +52,10 @@ public class CardBartok : Card
                 {
                     uC = 1;
 
-                    if (state == eCBState.toHand) state = eCBState.hand;
-                    if (state == eCBState.toTarget) state = eCBState.target;
-                    if (state == eCBState.toDrawpile) state = eCBState.drawpile;
-                    if (state == eCBState.to) state = eCBState.idle;
+                    if (state == eCardState.toHand) state = eCardState.hand;
+                    if (state == eCardState.toTarget) state = eCardState.target;
+                    if (state == eCardState.toDrawpile) state = eCardState.drawpile;
+                    if (state == eCardState.to) state = eCardState.idle;
 
                     transform.localPosition = bezierPts[bezierPts.Count - 1];
                     transform.rotation = bezierRots[bezierRots.Count - 1];
@@ -73,6 +75,20 @@ public class CardBartok : Card
                     transform.localPosition = pos;
                     Quaternion rotQ = Utils.Bezier(uC, bezierRots);
                     transform.rotation = rotQ;
+
+                    if (u > 0.5f)
+                    {
+                        SpriteRenderer sRend = spriteRenderers[0];
+                        if (sRend.sortingOrder != eventualSortOrder)
+                        {
+                            SetSortOrder(eventualSortOrder);
+                        }
+
+                        if (sRend.sortingLayerName != eventualSortLayer)
+                        {
+                            SetSortingLayerName(eventualSortLayer);
+                        }
+                    }
                 }
 
                 break;
@@ -95,7 +111,7 @@ public class CardBartok : Card
         }
         timeDuration = MOVE_DURATION;
 
-        state = eCBState.to;
+        state = eCardState.to;
     }
 
     public void MoveTo(Vector3 ePos)

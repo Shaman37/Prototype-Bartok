@@ -3,15 +3,27 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+public enum eTurnState
+{
+    idle,
+    pre,
+    waiting,
+    post,
+    gameOver    
+}
+
 public class Bartok : MonoBehaviour
 {
     static public Bartok S;
+    static public Player CURRENT_PLAYER;
 
     [Header("Set in Inspector")]
     public TextAsset deckXML;
     public TextAsset layoutXML;
     public Vector3   layoutCenter = Vector3.zero;
     public float     handFanDegrees = 10f;
+    public float     drawTimeStagger = 0.1f;
+    public int       numStartingCards = 7;
 
     [Header("Set Dynamically")]
     public Deck             deck;
@@ -19,6 +31,7 @@ public class Bartok : MonoBehaviour
     public List<CardBartok> discardPile;
     public List<Player>     players;
     public CardBartok       targetCard;
+    public eTurnState       phase = eTurnState.idle;
     private Layout          layout;
     private Transform       layoutAnchor;
 
@@ -42,22 +55,6 @@ public class Bartok : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Alpha1))
-        {
-            players[0].AddCard(Draw());
-        }
-        if (Input.GetKeyDown(KeyCode.Alpha2))
-        {
-            players[1].AddCard(Draw());
-        }
-        if (Input.GetKeyDown(KeyCode.Alpha3))
-        {
-            players[2].AddCard(Draw());
-        } 
-        if (Input.GetKeyDown(KeyCode.Alpha4))
-        {
-            players[3].AddCard(Draw());
-        }  
     }
 
     private void LayoutGame()
@@ -82,6 +79,98 @@ public class Bartok : MonoBehaviour
         }
 
         players[0].type = ePlayerType.human;
+
+        CardBartok card;
+        for (int i = 0; i < numStartingCards; i++)
+        {
+            // For each player
+            for (int j = 0; j < 4; j++)
+            {
+                card = Draw();
+                card.timeStart = Time.time + drawTimeStagger * (i * 4 + j);
+
+                players[j].AddCard(card);
+            }
+        }
+
+        Invoke("DrawFirstTarget", drawTimeStagger * (numStartingCards * 4 + 4));
+    }
+
+    private void DrawFirstTarget()
+    {
+        CardBartok card = MoveToTarget(Draw());
+
+        card.reportFinishTo = gameObject;
+    }
+
+    public void CBCallback(CardBartok card)
+    {
+        Utils.tr("Bartok:CBCallback()", card.name);
+        StartGame();
+    }
+
+    private void StartGame()
+    {
+        PassTurn(1);
+    }
+
+    private void PassTurn(int num = -1)
+    {
+        if (num == -1)
+        {
+            int ndx = players.IndexOf(CURRENT_PLAYER);
+            num = (ndx + 1) % 4;
+        }
+
+        int lastPlayerNum = -1;
+        if(CURRENT_PLAYER != null)
+        {
+            lastPlayerNum = CURRENT_PLAYER.playerNum;
+        }
+
+        CURRENT_PLAYER = players[num];
+        phase = eTurnState.pre;
+
+        Utils.tr("Bartok:PassTurn()", "Old: " + lastPlayerNum, "New: " + CURRENT_PLAYER.playerNum);
+    }
+
+    public bool ValidPlay(CardBartok card)
+    {
+        if (card.rank == targetCard.rank) return true;
+        if (card.suit == targetCard.suit) return true;
+
+        return false;
+    }
+
+    private CardBartok MoveToTarget(CardBartok card)
+    {
+        card.timeStart = 0;
+        card.MoveTo(layout.discardPile.pos + Vector3.back);
+        card.state = eCardState.toTarget;
+        card.faceUp = true;
+
+        card.SetSortingLayerName("10");
+        card.eventualSortLayer = layout.target.layerName;
+
+        if (targetCard != null)
+        {
+            MoveToDiscard(targetCard);
+        }
+
+        targetCard = card;
+
+        return card;
+    }
+
+    private void MoveToDiscard(CardBartok targetCard)
+    {
+        targetCard.state = eCardState.discard;
+
+        discardPile.Add(targetCard);
+
+        targetCard.SetSortingLayerName(layout.discardPile.layerName);
+        targetCard.SetSortOrder(discardPile.Count * 4);
+        targetCard.transform.localPosition = layout.discardPile.pos + Vector3.back / 2;
     }
 
     private void ArrangeDrawPile()
@@ -96,7 +185,7 @@ public class Bartok : MonoBehaviour
             tCB.faceUp = false;
             tCB.SetSortingLayerName(layout.drawPile.layerName);
             tCB.SetSortOrder(-i * 4);
-            tCB.state = eCBState.drawpile;
+            tCB.state = eCardState.drawpile;
         }
     }
 

@@ -34,7 +34,10 @@ public class Player
 
             hand = new List<CardBartok>(cards);
         }
-        
+
+        card.SetSortingLayerName("10");
+        card.eventualSortLayer = handSlotDef.layerName;
+
         FanHand();
 
         return card;
@@ -76,11 +79,10 @@ public class Player
             pos += handSlotDef.pos;
             pos.z = -0.5f * i;
 
-            hand[i].transform.localPosition = pos;
-            hand[i].transform.rotation = rotQ;
-            hand[i].state = eCBState.hand;
+            hand[i].MoveTo(pos, rotQ);
+            hand[i].state = eCardState.toHand;
             hand[i].faceUp = (type == ePlayerType.human);
-            hand[i].SetSortOrder(i * 4);
+            hand[i].eventualSortOrder = i * 4;
         }
     }
 }
