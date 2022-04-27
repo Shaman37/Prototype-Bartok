@@ -31,6 +31,9 @@ public class CardBartok : Card
     public GameObject       reportFinishTo = null;
     public int              eventualSortOrder;
     public string           eventualSortLayer;
+    
+    [System.NonSerialized] 
+    public Player           callbackPlayer = null;
 
     private void Update() {
         switch (state)
@@ -67,7 +70,11 @@ public class CardBartok : Card
                         reportFinishTo.SendMessage("CBCallback", this);
                         reportFinishTo = null;
                     }
-                    else{ }
+                    else if (callbackPlayer != null)
+                    {
+                        callbackPlayer.CBCallback(this);
+                        callbackPlayer = null;
+                    }
                 }
                 else
                 {

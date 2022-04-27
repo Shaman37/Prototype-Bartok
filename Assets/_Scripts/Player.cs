@@ -79,10 +79,51 @@ public class Player
             pos += handSlotDef.pos;
             pos.z = -0.5f * i;
 
+            if (Bartok.S.phase != eTurnState.idle)
+            {
+                hand[i].timeStart = 0;
+            }
+
             hand[i].MoveTo(pos, rotQ);
             hand[i].state = eCardState.toHand;
             hand[i].faceUp = (type == ePlayerType.human);
             hand[i].eventualSortOrder = i * 4;
         }
+    }
+
+    public void TakeTurn()
+    {
+        Utils.tr("PLayer.TakeTurn");
+
+        if (type == ePlayerType.human) return;
+        Bartok.S.phase = eTurnState.waiting;
+
+        List<CardBartok> validCards = new List<CardBartok>();
+        foreach (CardBartok cb in hand)
+        {
+            if(Bartok.S.ValidPlay(cb))
+            {
+                validCards.Add(cb);
+            }
+        }
+
+        CardBartok card;
+        if (validCards.Count == 0)
+        {
+            card = AddCard(Bartok.S.Draw());
+            card.callbackPlayer = this;
+            return;
+        }
+
+        card = validCards[Random.Range(0, validCards.Count)];
+        RemoveCard(card);
+        Bartok.S.MoveToTarget(card);
+        card.callbackPlayer = this;
+    }
+
+    public void CBCallback(CardBartok card)
+    {
+        Utils.tr("Player.CBCallback()", card.name, "Player " + playerNum);
+        Bartok.S.PassTurn();
     }
 }

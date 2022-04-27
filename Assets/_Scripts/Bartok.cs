@@ -114,7 +114,7 @@ public class Bartok : MonoBehaviour
         PassTurn(1);
     }
 
-    private void PassTurn(int num = -1)
+    public void PassTurn(int num = -1)
     {
         if (num == -1)
         {
@@ -131,6 +131,8 @@ public class Bartok : MonoBehaviour
         CURRENT_PLAYER = players[num];
         phase = eTurnState.pre;
 
+        CURRENT_PLAYER.TakeTurn();
+
         Utils.tr("Bartok:PassTurn()", "Old: " + lastPlayerNum, "New: " + CURRENT_PLAYER.playerNum);
     }
 
@@ -142,7 +144,7 @@ public class Bartok : MonoBehaviour
         return false;
     }
 
-    private CardBartok MoveToTarget(CardBartok card)
+    public CardBartok MoveToTarget(CardBartok card)
     {
         card.timeStart = 0;
         card.MoveTo(layout.discardPile.pos + Vector3.back);
