@@ -61,7 +61,7 @@ public class CardBartok : Card
                     if (state == eCardState.to) state = eCardState.idle;
 
                     transform.localPosition = bezierPts[bezierPts.Count - 1];
-                    transform.rotation = bezierRots[bezierRots.Count - 1];
+                    transform.rotation = bezierRots[bezierPts.Count - 1];
 
                     timeStart = 0;
 

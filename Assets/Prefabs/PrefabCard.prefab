@@ -143,3 +143,5 @@ MonoBehaviour:
   timeStart: 0
   timeDuration: 0
   reportFinishTo: {fileID: 0}
+  eventualSortOrder: 0
+  eventualSortLayer: 

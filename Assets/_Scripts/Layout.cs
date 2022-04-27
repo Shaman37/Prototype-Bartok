@@ -59,7 +59,7 @@ public class Layout : MonoBehaviour
             tSD.y = float.Parse(slotsX[i].att("y"));
             tSD.pos = new Vector3(tSD.x * multiplier.x, tSD.y * multiplier.y, 0);
             tSD.layerID = int.Parse(slotsX[i].att("layer"));
-            tSD.layerName = tSD.layerName.ToString();
+            tSD.layerName = tSD.layerID.ToString();
 
             switch (tSD.type)
             {
