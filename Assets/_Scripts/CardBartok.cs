@@ -102,6 +102,12 @@ public class CardBartok : Card
         }
     }
 
+    override public void OnMouseUpAsButton()
+    {
+        Bartok.S.CardClicked(this);
+        base.OnMouseUpAsButton();
+    }
+
     public void MoveTo(Vector3 ePos, Quaternion eRot)
     {
         bezierPts = new List<Vector3>();

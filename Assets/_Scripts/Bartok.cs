@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -193,10 +192,36 @@ public class Bartok : MonoBehaviour
 
     public CardBartok Draw()
     {
-        CardBartok card = drawPile[0];
+        CardBartok newCard = drawPile[0];
+
+        if(drawPile.Count == 0)
+        {
+            int ndx;
+            while (discardPile.Count > 0)
+            {
+                ndx = Random.Range(0, discardPile.Count);
+                drawPile.Add(discardPile[ndx]);
+                discardPile.RemoveAt(ndx);
+            }
+
+            ArrangeDrawPile();
+
+            float t = Time.time;
+            foreach (CardBartok card in drawPile)
+            {
+                card.transform.localPosition = layout.discardPile.pos;
+                card.callbackPlayer = null;
+                card.MoveTo(layout.drawPile.pos);
+                card.timeStart = t;
+                t += 0.02f;
+                card.state = eCardState.toDrawpile;
+                card.eventualSortLayer = "0";
+            }
+        }
+
         drawPile.RemoveAt(0);
 
-        return card;
+        return newCard;
     }
 
     private List<CardBartok> UpgradeCardsList(List<Card> lCards)
@@ -208,5 +233,40 @@ public class Bartok : MonoBehaviour
         }
 
         return lCardBartok;
+    }
+
+    public void CardClicked(CardBartok card)
+    {
+        if (CURRENT_PLAYER.type != ePlayerType.human) return;
+        if (phase == eTurnState.waiting) return;
+
+        switch (card.state)
+        {
+            case eCardState.drawpile:
+                CardBartok newCard = CURRENT_PLAYER.AddCard(Draw());
+                newCard.callbackPlayer = CURRENT_PLAYER;
+                
+                Utils.tr("Bartok:CardClicked()", "Draw", newCard.name);
+                phase = eTurnState.waiting;
+
+                break;
+            
+            case eCardState.hand:
+                if (ValidPlay(card))
+                {
+                    CURRENT_PLAYER.RemoveCard(card);
+                    MoveToTarget(card);
+                    card.callbackPlayer = CURRENT_PLAYER;
+
+                    Utils.tr("Bartok:CardClicked()", "Play", card.name);
+                    phase = eTurnState.waiting;
+                }
+                else
+                {
+                    Utils.tr("Bartok:CardClicked()", "Attempted to Play", card.name, targetCard.name + "is target");
+                }
+
+                break;
+        }
     }
 }
