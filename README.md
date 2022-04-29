@@ -3,6 +3,7 @@ This project is a Unity Example Game from the book [Introduction to Game Design,
 
 It is a card game prototype, similar to the commercial game [UNO](https://en.wikipedia.org/wiki/Uno_(card_game)), with less rules and played with a standard card deck.
 
+You can play it online [here!](https://shaman37.itch.io/prototype-bartok)
 ## How to play
 <p align="center">
   <img src="https://user-images.githubusercontent.com/17680666/165542242-62fccaf7-6c65-431d-b618-62c68e1f20a2.png">
